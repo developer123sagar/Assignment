@@ -18,6 +18,9 @@ import {
   FormMessage,
 } from "./ui/form";
 import { Input } from "./ui/input";
+import axios from "axios";
+import { useToast } from "@/components/ui/use-toast";
+import { useRouter } from "next/navigation";
 
 interface AuthFormProps {
   variant: "SIGNIN" | "SIGNUP";
@@ -29,18 +32,38 @@ const AuthForm = ({ variant, title, api }: AuthFormProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPass, setShowPass] = useState(false);
 
+  const { toast } = useToast();
+  const router = useRouter();
+
   // form
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       email: "",
       password: "",
-      username: "",
+      ...(variant === "SIGNUP" && { username: "" }),
     },
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values);
+    setIsSubmitting(true);
+    try {
+      const res = await axios.post(api, values);
+
+      if (res.status === 200) {
+        toast({ title: "Success", description: res.data.message || "Success" });
+        if (variant === "SIGNUP") {
+          router.push("/");
+        }
+      }
+    } catch (err: any) {
+      toast({
+        title: "Error",
+        description: err.response.data.error || "Something went wrong",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (

@@ -6,7 +6,7 @@ const passwordRegx =
 export const formSchema = z.object({
     username: z.string().min(3, {
         message: "Username must be at least 3 characters.",
-    }),
+    }).optional(),
     email: z.string().email({
         message: "Please enter a valid email address.",
     }),
